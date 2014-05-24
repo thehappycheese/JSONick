@@ -5,8 +5,8 @@
 }
 
 .content{
-	margin-left:2em;
-	margin-bottom:1em;
+	margin-left:1em;
+	margin-bottom:0.5em;
 	background-color:rgba(0,0,0,0.1);
 }
 #leftcol > .content{

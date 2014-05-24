@@ -6,11 +6,22 @@ data.Ag.related = '<h1>Hello!</h1><p>Well this is a fun side effect!</p><p>Well 
 data.alpha2.related = [1,2,3,4,[1,2,3,4],6,7];
 data.Acc.related = {x:10};
 
-
+//data={
+//	munxc:[1,2,3,4,[45,2]],
+//	b:"pleft"
+//}
 
 var cnt = 9000;
-build("#leftcol",data,[]);
-document.querySelector("#leftcol").querySelector(".content").style.display = "";
+
+
+
+render()
+	
+function render(){
+	var root = d3.select("#leftcol")
+		.data(function(){return [data]})
+	root.call(build,[]);
+}
 
 
 
@@ -21,41 +32,87 @@ function setup(){
 
 
 
-function build(host,json,path){
-	if(json==undefined){
-		return
+function build(something,path){
+	if(this[0][0].__data__.length==0){
+		return;
 	}
-	 
-	var divlist = d3
-		.select(host)
-		.append("div")
-		.attr("class","content")
-		.style("display","none")
-		.selectAll("div")
-		.data(function(){
-			var data_array = [];
-			for(var i in json){
-				data_array.push({name:i, value:json[i], path:path.concat([i])});
+	
+	// div which will contain a table and maybe another root container div
+	var items = this.selectAll(".item")
+		.data(
+			function(d){
+				var json = this.parentNode.__data__;
+				var data_array = [];
+				for(var i in json){
+					data_array.push({name:i, value:json[i], path:path.concat([i])});
+				}
+				return data_array;
+			},
+			function(d){
+				//console.log(d.path.join("."))
+				return d.path.join(".");
 			}
-			return data_array;
+		);
+	
+	items.enter()
+		.append("div")
+		.attr("class","item");
+	
+	
+		
+	items.exit()
+		.each(function(d){
+			console.log(d.path.join("."));
 		})
-		.enter()
-		.append("div");
-		
-	window.d = divlist;
-		
-	var tables = divlist
-		.attr("class","item")
+		.remove();
+	
+	/*
+	SO i figured out what to do. Its very simple
+	you need your datastructure to be digested from JSON into an array-type structure
+	That way there is no need to wrap objects like this: [dataObject]
+	That way you arent creating a different set of data for every call
+	That way it will not identify data as being removed! whoop.
+	*/
+	
+	
+	
+	
+	
+	
+	
+	
+	var table = items.selectAll(".entry")
+		.data(
+			function(d){
+				
+				return [this.parentNode.__data__];
+			},
+			function(d){return d.path.join(".")}
+		);
+	
+	table.enter()
 		.append("table")
+		.attr("class","entry")
+	
+	//table.exit().remove();
+	
+	
+	
+	
+	
+	var trow = table.selectAll("tr")
+		.data(
+			function(){return [this.parentNode.__data__];},
+			function(d){return d.path.join(".")}
+		);
+	
+	trow.enter()
 		.append("tr")
 		.on("click",function(){
 			var pn = this.parentNode;
 			while(pn.__data__ == undefined){
 				pn = pn.parentNode;
 			}
-			
-			
-			
 			// toggle content visisbility
 			var contentdiv = pn.parentNode.querySelector(".content");
 			if(contentdiv){
@@ -69,16 +126,72 @@ function build(host,json,path){
 				document.querySelector("#pathtext").innerHTML = pn.__data__.path.join('.');
 			}
 		})
-	tables
-		.append("td")
-		.attr("class","col1")
-		.text(function(d){
-			var pn = this.parentNode;
-			while(pn.__data__ == undefined){
-				pn = pn.parentNode;
+	
+	//trow.exit().remove();
+	
+	
+	
+	
+	
+	var tds = trow.selectAll("td")
+		.data(
+			function(){
+				//console.log(this.parentNode.__data__.name)
+				return [this.parentNode.__data__.name, this.parentNode.__data__.value];
 			}
-			return pn.__data__.name;
+		);
+	
+	tds.enter()
+		.append("td")
+		.attr("class","col1");
+	
+	//tds.exit().remove()
+		
+	tds//.update()
+		.html(function(d){
+			return d;
 		})
+	
+	
+	items.each(function(d){
+		if(typeof d.value == "object"){
+			var cont = d3.select(this).selectAll(".content")
+				.data(
+					function(d){
+						return [d.value]
+					},
+					function(d){
+						return d;
+					});
+				
+			
+			cont.enter()
+				.append("div")
+				.attr("class","content")
+				.style("display","none");
+				
+			//cont.exit().remove();
+			
+			cont.call(build, path.concat([d.name]));
+		}
+	})
+	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*
 	tables
 		.append("td")
 		.attr("class","col2")
@@ -113,14 +226,6 @@ function build(host,json,path){
 			}
 		})
 		
-		//.html(function(d){
-		//	if(typeof d.value=="number" || typeof d.value=="string"){
-		//		return '<table><tr><td class="col1">' + d.name +'</td><td class="col2"><div>'+ d.value+"</div></td></tr></table>";
-		//	}else if(typeof json=="object"){
-		//		return '<table><tr><td class="col1">' + d.name +'</td><td class="col2" style="color:grey;font-family:sans-serif;">'+ Object.prototype.toString.call(d.value)+"</td></tr></table>";
-		//	}
-		//	return d.name + "erk";
-		//})
 			
 
 		divlist[0]
@@ -131,5 +236,4 @@ function build(host,json,path){
 						build(d,d.__data__.value,path.concat([d.__data__.name]))
 					}
 				}
-			})
-}
+			})*/
