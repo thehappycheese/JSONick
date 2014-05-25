@@ -26,6 +26,11 @@
 .item table:hover{
 	background-color:highlight;
 }
+
+.item table td.array,.object,.boolean,.number{
+	font-family:monospace;
+	color:red;
+}
 .col1, .col2{
 	border-bottom:1px solid lightgrey;
 	padding: 1px 1em;
