@@ -4,10 +4,22 @@
 
 data.Ag.related = '<h1>Hello!</h1><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p><p>Well this is a fun side effect!</p>'
 data.alpha2.related = [1,2,3,4,[1,2,3,4],6,7];
-data.Acc.related = {x:10};
+data.Acc.related = {x:false};
 
 
 
+
+
+
+var jsonEditor = {
+	fileOpen:false,
+	currentPath:[],
+	data:{},
+	
+	setCurrentPath:function(){
+		// etc
+	}
+}
 
 
 
@@ -29,7 +41,20 @@ data.Acc.related = {x:10};
 //
 //}
 
-data={json:data};
+
+
+window.editor = ace.edit("editdiv");
+	//editor.setTheme("ace/theme/monokai");
+	editor.getSession().setMode("ace/mode/javascript");
+	
+	editor.getSession().on('change', function () {
+		//
+	});
+
+
+
+
+
 
 
 function isObjectEmpty(map) {
@@ -123,14 +148,21 @@ function update(host,data,path){
 						}
 					}
 				});
-				
+			// item name
 			var td1 = $("<td/>")
 				.appendTo(trow)
 				.html(item)
 				.addClass("col1")
+			// item value/object indicator
 			var td2 = $("<td>")
 				.appendTo(trow)
 				.addClass("col2")
+			// item controls
+			var td3 = $("<td>")
+				.appendTo(trow)
+				.addClass("col3")
+			
+			addControls(td3);
 			
 			switch(item_type){
 				case "[object Number]":
@@ -154,7 +186,7 @@ function update(host,data,path){
 				case "[object Boolean]":
 					td2.addClass("boolean");
 					var html = data[item];
-					td2.html(html);
+					td2.html(html.toString());
 					break;
 				case "[object Array]":
 					td2.addClass("array");
@@ -201,4 +233,21 @@ function update(host,data,path){
 	console.log("removed",items_removed);
 	//console.groupEnd()
 	
+}
+
+
+
+
+function addControls(host){
+	var add_above = $("<button>")
+		.appendTo(host)
+		.text("+\u21E7")
+		
+	var add_above = $("<button>")
+		.appendTo(host)
+		.text("+\u21E9")
+	
+	var add_above = $("<button>")
+		.appendTo(host)
+		.text("del")
 }

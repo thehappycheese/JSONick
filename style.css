@@ -27,11 +27,28 @@
 	background-color:highlight;
 }
 
-.item table td.array,.object,.boolean,.number{
+.array,.object,.boolean,.number{
 	font-family:monospace;
-	color:red;
 }
-.col1, .col2{
+.array{
+	color:darkgreen;
+}
+.object{
+	color:darkblue;
+}
+.number{
+	color:darkred;
+}
+.boolean{
+	color:purple;
+}
+.empty{
+	color:lightgrey;
+}
+
+
+
+.col1, .col2, .col3{
 	border-bottom:1px solid lightgrey;
 	padding: 1px 1em;
 }
@@ -43,9 +60,11 @@
 }
 .col2{
 	min-width:4cm;
+	font-family: Verdana, Geneva, sans-serif;
 }
-.col2 div{
-	
+.col3{
+	width:10em;
+	text-align:right;
 }
 
 
@@ -72,7 +91,7 @@ body{
 #leftcol{
 	flex: 1 0 300px;
 	overflow-y:scroll;
-	
+	background: #EEEEEE;
 }
 #rightcol{
 	flex: 1 0 300px;
@@ -82,11 +101,11 @@ body{
 	
 }
 
-#rightcol div{
+#rightcol>div{
 	border:1px solid lightgrey;
 }
 
-#pathtext, #menu, #editor{
+#pathtext, #menu, #editdiv{
 	padding:5px;
 	border:1px solid lightgrey;
 	flex: 1 1 auto;
