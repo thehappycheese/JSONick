@@ -13,56 +13,203 @@ data.Acc.related = {x:10};
 
 var cnt = 9000;
 
+var test_json = {
+	a:2,
+	b:false,
+	c:"Hello world!",
+	d:function(x){return 2*x;},
+	e:[1,2,3],
+	f:[3,[4,5,6],7],
+	g:{
+		h:null,
+		i:undefined,
+		k:[],
+		l:{},
+		m:"",
+		n:0,
+		q:function(){}
+	},
+	o:document.body
+}
 
 
+
+
+
+
+
+
+function digestJSON(json, path){
+	var result = undefined;
+	var jsonType = Object.prototype.toString.call(json);
+	switch(jsonType){
+		case "[object Null]":
+		case "[object Undefined]":
+		case "[object Number]":
+		case "[object Boolean]":
+		case "[object String]":
+			result = json;
+			break;
+		case "[object Array]":
+			result = [];
+			for(var i = 0;i<json.length;i++){
+				result.push({
+					name:		i,
+					value:	digestJSON(json[i], path.concat([i])),
+					path:		path.concat([i]),
+					type:		Object.prototype.toString.call(json[i])
+				})
+			}
+			break;
+		case "[object Object]":
+			result = [];
+			for(var i in json){
+				result.push({
+					name:		i,
+					value:	digestJSON(json[i], path.concat([i])),
+					path:		path.concat([i]),
+					type:		Object.prototype.toString.call(json[i])
+				})
+			}
+			break;
+		case "[object Function]":
+			result = null;
+			console.warn("Cannot digest functions at { JSON."+path.join(".")+": "+jsonType+" } Null stored in place.");
+			break;
+		default:
+			result = null;
+			console.warn("Cannot digest datatype at { JSON."+path.join(".")+": "+jsonType+" } Null stored in place.");
+	}
+	return result;
+}
+
+function reconstituteJSON(json, return_type){
+	return_type = return_type || "[object Object]";
+	var result = undefined;
+	switch(return_type){
+		case "[object Object]":
+			result = {};
+			
+			for(var i =0;i<json.length;i++){
+				result[json[i].name] = reconstituteJSON(json[i].value, json[i].type);
+			}
+			
+			
+			break;
+		case "[object Array]":
+			result = [];
+			
+			for(var i =0;i<json.length;i++){
+				result[json[i].name] = reconstituteJSON(json[i].value, json[i].type);
+			}
+			break;
+		default:
+			return json;
+	}
+	return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var digested_data = digestJSON(data,[]);
 render()
-	
 function render(){
 	var root = d3.select("#leftcol")
-		.data(function(){return [data]})
-	root.call(build,[]);
+		.call(build,digested_data);
 }
 
-
-
-function setup(){
+function build(something, arg_data){
 	
-}
 
-
-
-
-function build(something,path){
-	if(this[0][0].__data__.length==0){
-		return;
-	}
 	
 	// div which will contain a table and maybe another root container div
 	var items = this.selectAll(".item")
 		.data(
+			arg_data,
 			function(d){
-				var json = this.parentNode.__data__;
-				var data_array = [];
-				for(var i in json){
-					data_array.push({name:i, value:json[i], path:path.concat([i])});
-				}
-				return data_array;
-			},
-			function(d){
-				//console.log(d.path.join("."))
 				return d.path.join(".");
 			}
-		);
+		).enter();
 	
-	items.enter()
+	items
 		.append("div")
-		.attr("class","item");
+		.attr("class","item")
+		.append("table")
+		.attr("class","entry")
+		.append("tr")
+		.on("click",function(){
+			var div = this.parentNode.parentNode.querySelector(".content");
+			if(div){
+				if(div.style.display == "none"){
+					div.style.display = null;
+				}else{
+					div.style.display = "none";
+				}
+			}
+		});
+		
+	this.selectAll(".item tr")
+		.append("td")
+		.attr("class", "col1")
+		.text(function(d){return d.name});
+	
+	this.selectAll(".item tr")
+		.append("td")
+		.attr("class", "col2")
+		.html(function(d){
+			if(d.type == "[object Array]" || d.type == "[object Object]"){
+				d3.selectAll(this)
+					.style("font-family","sans-serif")
+					.style("color","darkgrey")
+				return d.type
+			}else{
+				return d.value
+			}
+		});
+	
+	this.selectAll(".item")
+		.each(function(d){
+			
+			if(d.type == "[object Array]" || d.type == "[object Object]"){
+				
+				d3.selectAll(this)
+					.append("div")
+					.attr("class","content")
+					.style("display","none")
+					.call(build,function(d){return d.value});
+			}else{
+				// do nothing
+			}
+			
+		})
 	
 	
 		
 	items.exit()
 		.each(function(d){
-			console.log(d.path.join("."));
+			console.log("exit -  "+d.path.join("."));
 		})
 		.remove();
 	
@@ -81,20 +228,19 @@ function build(something,path){
 	
 	
 	
-	var table = items.selectAll(".entry")
-		.data(
-			function(d){
-				
-				return [this.parentNode.__data__];
-			},
-			function(d){return d.path.join(".")}
-		);
+
 	
-	table.enter()
-		.append("table")
-		.attr("class","entry")
 	
-	//table.exit().remove();
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	return
 	
 	
 	
