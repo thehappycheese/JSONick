@@ -1,4 +1,7 @@
+
+
 function JSONick(arg_renderElement){
+	EventDispatcher.call(this);
 	"use strict";
 	this.fileOpen = false;
 	this.currentPath = [];
@@ -6,28 +9,118 @@ function JSONick(arg_renderElement){
 	this.renderElement = arg_renderElement || document.body;
 	
 	
-	this.setCurrentPath = function(newpath){
-		this.currentPath = newpath;
+	
+	
+	
+	
+	
+	this.io_open = function(){
+		
 	}.bind(this);
+	
+	this.io_close = function(){
+		
+	}.bind(this);
+	
+	this.io_open = function(){
+		
+	}.bind(this);
+	
+	
+	
+	
+	
+	// TODO: maybe copy these arrays to avoid a possible outider editing them?
+	this.setCurrentPath = function(newpath){
+		this.currentPath = [].concat(newpath);
+	}.bind(this);
+	this.getCurrentPath = function(){
+		return [].concat(this.currentPath);
+	}
 	
 	
 	
 	this.setCurrentValue = function(newvalue){
-		var val = this.data;
-		for(var i =0; i < this.currentPath.length-1; i++){
-			val = val[this.currentPath[i]];
+
+		if(this.currentPath.length>0){
+			var val = this.data;
+			for(var i =0; i < this.currentPath.length-1; i++){
+				val = val[this.currentPath[i]];
+			}
+			val[this.currentPath[i]] = newvalue;
+		}else{
+			this.data = newvalue;
 		}
-		val[this.currentPath[i]] = newvalue;
 	}.bind(this);
 	
-	
+	this.setCurrentValueString = function(arg_newval, changetype){
+
+		var newtype = changetype || this.getCurrentType();
+		var newval = null;
+		try{
+			switch(newtype){
+				case "[object String]":
+					newval = arg_newval;
+					break;
+				case "[object Number]":
+					newval = parseFloat(arg_newval);
+					break;
+				case "[object Boolean]":
+				case "[object Object]":
+				case "[object Array]":
+					newval = JSON.parse(arg_newval);
+					break;
+				default:
+					console.error("failed to assign value string due to unresolved type")
+			}
+			this.setCurrentValue(newval);
+		}catch(e){
+			console.error(e);
+		}
+		this.update();
+		
+	}
 	
 	this.getCurrentValue = function(){
-		var val = this.data;
-		for(var i =0; i < this.currentPath.length; i++){
-			val = val[this.currentPath[i]];
+		if(!this.fileOpen){
+			return undefined;
 		}
-		return val;
+		if(this.currentPath.length>0){
+			var val = this.data;
+			for(var i =0; i < this.currentPath.length; i++){
+				val = val[this.currentPath[i]];
+			}
+			return val;
+		}else{
+			return this.data;
+		}
+	}.bind(this);
+	
+	this.getCurrentValueString = function(){
+		if(!this.fileOpen){
+			return undefined;
+		}
+		var val = this.getCurrentValue();
+		switch(this.getCurrentType()){
+			case "[object String]":
+				return val;
+			case "[object Number]":
+				return val.toString();
+			case "[object Boolean]":
+				return val.toString();
+			case "[object Object]":
+			case "[object Array]":
+				return JSON.stringify(val,null,"\t");
+			default:
+				return null;
+		}
+	}
+	
+	this.getCurrentType = function(){
+		if(!this.fileOpen){
+			return undefined;
+		}
+		return Object.prototype.toString.call(this.getCurrentValue())
 	}.bind(this);
 	
 	
@@ -40,27 +133,39 @@ function JSONick(arg_renderElement){
 	
 	
 	this.openJSONText = function(txt){
+		this.currentPath = [];
+		this.fileOpen = false;
+		var d = null;
 		try{
-			var d = JSON.parse(txt);
-			this.data = d;
+			d = JSON.parse(txt);
+			this.fileOpen = true;
 		}catch(e){
 			alert("JSONick.js : Could not parse JSON Text.");
 			//console.log(e);
 		}
+		this.data = d;
+		this.dispatch("pathchange");
+		this.update();
 	}.bind(this);
 	
 	
 	this.openJSONObject = function(obj){
-		// TODO handle close;
+		this.currentPath = [];
 		this.data = obj;
 		this.fileOpen = true;
+		this.dispatch("pathchange");
 		this.update();
 	}.bind(this);
 	
 	
 	this.update = function(){
+		this.dispatch("update")
 		this.render(this.renderElement,this.data,[]);
 	}
+	
+	
+	
+	
 	
 	
 	this.render = function(host,data,path){
@@ -88,39 +193,68 @@ function JSONick(arg_renderElement){
 			
 			var item_path = path.concat([item]);
 			var item_type = Object.prototype.toString.call(data[item]);
-
+			
+			// look through the dom for a div with class 'item' which is a direct decendant of 'host' which has a ._path value of 'path'
 			var item_div = this.lookfor(host, item_path);
 			
 			if(item_div){
 				//////////////////////// Item already exists ////////////////////////
 				//items_changed.push(item_path.join("."));
 				
-				delete item_div._remove;
+				delete item_div._remove; // delete the removal flag for this item. it is to be used.
+				
+				// find all the table cells we made before.
 				var tds = item_div.querySelectorAll("td");
-
-				// tds[0] and tds[03] did not change.
-				if(item_type === "[object Number]" || item_type === "[object String]" || item_type === "[object Boolean]"){
-					tds[1].innerHTML = data[item]
-				}
 				
+				// set the second cell to have a nice preview value
+				this.setItemPreview(tds[1],data[item])
+				
+				// try to find the content div.
+				var content_div = item_div.querySelector(".content")
 				if(item_type === "[object Object]" ||	item_type === "[object Array]" ){
-					var content_div = item_div.querySelector(".content")
+					// create add and populate if required
+					if(content_div === null){
+						content_div = document.createElement("div");
+						item_div.appendChild(content_div);
+						content_div.className = "content";
+					}
 					this.render(content_div,data[item],path.concat([item]))
-				
+				}else{
+					// remove it if it's not needed
+					if(content_div !== null){
+						content_div.remove();
+					}
 				}
 			}else{
 				/////////////////// item needs to be built ////////////////////
 				//items_added.push(item_path.join("."));
 				
+				// Create the actual main div for the item. (item_div)
 				item_div = $("<div>")
 					.appendTo(host)
 					.addClass("item");
 				item_div[0]._path = item_path.concat([]);
+				
+				// Generate a little table to go at the top
 				var table = $("<table>")
 					.appendTo(item_div);
 					
 				var trow = $("<tr/>")
 					.appendTo(table)
+					.on("click", function(e){
+						var pel = e.target;
+						while(pel.className!=="item"){
+							pel=pel.parentElement;
+						}
+						this.setCurrentPath(pel._path);
+						this.dispatch("pathchange");
+					}.bind(this));
+				
+				// cell 1 item name
+				var td1 = $("<td/>")
+					.appendTo(trow)
+					.html(item)
+					.addClass("col1")
 					.on("click", function(e){
 						var pel = e.target;
 						while(pel.className!=="item"){
@@ -134,78 +268,25 @@ function JSONick(arg_renderElement){
 								content_div.style.display = "none";
 							}
 						}
-						this.setCurrentPath(pel._path);
-					}.bind(this));
-				// item name
-				var td1 = $("<td/>")
-					.appendTo(trow)
-					.html(item)
-					.addClass("col1")
-				// item value/object indicator
+					});
+				// cel 2 item value/object indicator
 				var td2 = $("<td>")
 					.appendTo(trow)
 					.addClass("col2")
 				// item controls
-				var td3 = $("<td>")
-					.appendTo(trow)
-					.addClass("col3")
+				//var td3 = $("<td>")
+				//	.appendTo(trow)
+				//	.addClass("col3")
+				//this.addControls(td3);
 				
-				this.addControls(td3);
+				this.setItemPreview(td2[0], data[item]);
 				
-				switch(item_type){
-					case "[object Number]":
-						td2.addClass("number");
-						var html = data[item];
-						if(isNaN(html)){
-							html = "NaN";
-							td2.addClass("empty");
-						}
-						td2.html(html);
-						break
-					case "[object String]":
-						td2.addClass("string");
-						var html = data[item];
-						if(html == ""){
-							html = "\"\"";
-							td2.addClass("empty");
-						}
-						td2.html(html);
-						break;
-					case "[object Boolean]":
-						td2.addClass("boolean");
-						var html = data[item];
-						td2.html(html.toString());
-						break;
-					case "[object Array]":
-						td2.addClass("array");
-						if(data[item].length == 0){
-							td2.addClass("empty")
-							td2.html("[]");
-						}else{
-							td2.html("[...]");
-						}
-						var content_div = $("<div>")
+				// generate a little content div to hold on to the sub items.
+				if(item_type === "[object Array]" || item_type === "[object Object]"){
+					var content_div = $("<div>")
 							.appendTo(item_div)
 							.addClass("content")
 							.css("display","none");
-						this.render(content_div[0],data[item],path.concat([item]))
-						break;
-					case "[object Object]":
-						td2.addClass("object");
-						if(this.isObjectEmpty(data[item])){
-							td2.addClass("empty")
-							td2.html("{}");
-						}else{
-							td2.html("{...}");
-						}
-						var content_div = $("<div>")
-							.appendTo(item_div)
-							.addClass("content")
-							.css("display","none");
-						this.render(content_div[0],data[item],path.concat([item]))
-						break;
-					default:
-						// do nothing?
 				}
 			}
 		}
@@ -223,8 +304,78 @@ function JSONick(arg_renderElement){
 		
 	}.bind(this);
 	
+	
+	
+	
+	this.setItemPreview = function(dom, value){
+		// TODO: 
+		dom.className = "col2";
+		var type = Object.prototype.toString.call(value);
+		switch(type){
+			case "[object Number]":
+				dom.className += " number";
+				if(isNaN(value)){
+					dom.className += " empty";
+					dom.innerHTML = "NaN";
+				}else{
+					dom.innerHTML = value;
+				}
+				break;
+			case "[object String]":
+				dom.className += " string";
+				if(value === ""){
+					dom.className += " empty";
+					dom.innerHTML = "\"\"";
+				}else{
+					dom.innerHTML = "\""+value+"\"";
+				}
+				break;
+			case "[object Boolean]":
+				dom.className += " boolean";
+				dom.innerHTML = JSON.stringify(value);
+				break;
+			case "[object Object]":
+				dom.className += " object";
+				var jsonified = JSON.stringify(value);
+				if(jsonified.length === 2){
+					dom.className += " empty";
+					dom.innerHTML = jsonified;
+				}else if(jsonified.length<20){
+					dom.innerHTML = jsonified;
+				}else{
+					dom.innerHTML = jsonified.substring(0,20)+" ...";
+				}
+				break;
+			case "[object Array]":
+				dom.className += " array";
+				var jsonified = JSON.stringify(value);
+				if(jsonified.length === 2){
+					dom.className += " empty";
+					dom.innerHTML = jsonified;
+				}else if(jsonified.length<20){
+					dom.innerHTML = jsonified;
+				}else{
+					dom.innerHTML = jsonified.substring(0,20)+" ...";
+				}
+				break;
+			case "[object Null]":
+				dom.className += " null empty";
+				dom.innerHTML = "null";
+				break;
+			case "[object Undefined]":
+				dom.className += " null empty";
+				dom.innerHTML = "undefined";
+				break;
+			default:
+				//
+		}
+	}
+	
+	
 	//////////////////////////////
 	this.addControls = function(host){
+		// TODO: fix this
+		return;
 		var add_above = $("<button>")
 			.appendTo(host)
 			.text("+\u21E7")
@@ -238,15 +389,7 @@ function JSONick(arg_renderElement){
 			.text("del")
 	}
 	
-	/////////////////////////////////
-	this.isObjectEmpty = function(map) {
-		for(var key in map) {
-			if (map.hasOwnProperty(key)) {
-				return false;
-			}
-		}
-		return true;
-	}
+	
 	this.lookfor = function(host, path){
 		var c = host.children;
 		for(var i = 0;i<c.length;i++){

@@ -11,12 +11,28 @@
 		
 		<div id="rightcol">
 			<div id="menu">
-				<h1 style="font-family: Verdana, Geneva, sans-serif;display:inline-block;margin:0;padding:0;font-size:20px;">JSONick</h1>
+				<h1 style="font-family: 'Trebuchet MS', Helvetica, sans-serif;display:inline-block;margin:0;padding:0;font-size:20px;margin-right:1em;">JSONick</h1>
 				<button>Open</button>
 				<button>Close</button>
 				<button>Save</button>
 				<button>Save As</button>
-				
+				<select id="lang">
+					<option value="js" selected>Javascript</option>
+					<option value="txt">Text</option>
+					<option value="html">HTML</option>
+				</select>
+				<select id="wrap">
+					<option value="no" selected>No-Wrap</option>
+					<option value="yes">Wrap</option>
+				</select>
+				<select id="forcetype">
+					<option value="[object Number]">Number</option>
+					<option value="[object String]">String</option>
+					<option value="[object Boolean]">Boolean</option>
+					<option value="[object Object]">Object</option>
+					<option value="[object Array]">Array</option>
+				</select>
+				<button onclick="jsonEditor.setCurrentPath([]);updateInterface()">root</button>
 			</div>
 			<div id="pathtext"></div>
 			<div id="editdiv"></div>
@@ -24,8 +40,10 @@
 		
 	</div>
 </body>
+
+<script src="EventDispatcher.js"></script>
 <script src="jquery-2.1.1.min.js" charset="utf-8"></script>
-<script src="data.js"></script>
+<script src="data.js" charset="utf-8"></script>
 <script src="JSONick.js"></script>
 <script src="main.js"></script>
 

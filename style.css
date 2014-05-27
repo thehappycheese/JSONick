@@ -23,7 +23,7 @@
 	cursor:pointer;
 	background-color:white;
 }
-.item table:hover{
+.item table:hover .col1{
 	background-color:highlight;
 }
 
@@ -31,19 +31,25 @@
 	font-family:monospace;
 }
 .array{
-	color:darkgreen;
+	color:green;
 }
 .object{
 	color:darkblue;
 }
 .number{
-	color:darkred;
+	color:red;
 }
 .boolean{
 	color:purple;
 }
+.null{
+	color:orange;
+}
+.string {
+	font-family: Verdana, Geneva, sans-serif;
+}
 .empty{
-	color:lightgrey;
+	font-style:italic;
 }
 
 
@@ -60,7 +66,7 @@
 }
 .col2{
 	min-width:4cm;
-	font-family: Verdana, Geneva, sans-serif;
+	
 }
 .col3{
 	width:10em;
@@ -113,6 +119,12 @@ body{
 #menu, #pathtext{
 	margin-bottom:5px;
 	flex: 0 1 auto;
+}
+#pathtext{
+	font-family: "Trebuchet MS", Helvetica, sans-serif;
+	color: grey;
+	font-size: 0.8em;
+	height:1em;
 }
 
 
