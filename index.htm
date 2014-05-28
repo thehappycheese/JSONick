@@ -2,6 +2,19 @@
 <head>
 	<link rel="stylesheet" type="text/css" href="style.css" />
 	<script src="ace/ace.js"  charset="utf-8"></script>
+	<script type="text/x-mathjax-config">
+		MathJax.Hub.Config({
+			extensions: ["tex2jax.js"],
+			jax: ["input/TeX","output/HTML-CSS"],
+			tex2jax: {inlineMath: [["$$","$$"],["$$$","$$$"]]},
+			messageStyle: "none",
+			skipStartupTypeset: false,
+			menuSettings: {
+				context: "Browser"
+			}
+		});
+	</script>
+	<script type="text/javascript" src="js/mathjax/MathJax.js"></script>
 </head>
 
 <body>
