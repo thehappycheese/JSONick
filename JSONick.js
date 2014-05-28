@@ -1,5 +1,13 @@
 
 
+function JSON_stringify(s){
+   return JSON.stringify(s,null,"\t").replace(/[\u007f-\uffff]/g,
+      function(c) { 
+        return '\\u'+('0000'+c.charCodeAt(0).toString(16)).slice(-4);
+      }
+   );
+}
+
 function JSONick(arg_renderElement){
 	EventDispatcher.call(this);
 	"use strict";
@@ -8,6 +16,8 @@ function JSONick(arg_renderElement){
 	this.data = {};
 	this.renderElement = arg_renderElement || document.body;
 	
+	this.currentFilePath = undefined;
+	
 	
 	
 	
@@ -15,15 +25,74 @@ function JSONick(arg_renderElement){
 	
 	
 	this.io_open = function(){
-		
+		var inp = document.createElement("input");
+		document.body.appendChild(inp);
+		inp.type="file"
+		inp.style.display = "none";
+		inp.addEventListener("change",function(e){
+			var filepath = e.target.value;
+			e.target.remove();
+			this.currentFilePath = filepath;
+			fs.readFile(filepath,{encoding:"utf8"},function(err,data){
+				if(!err){
+					try{
+						this.openJSONText(data)
+					}catch(e){
+						console.log("failed to parse the contents of that file. File was not loaded.")
+						this.io_close();
+						this.currentFilePath = undefined;
+					}
+				}else{
+					this.currentFilePath = undefined;
+					alert("could not read file")
+				}
+			}.bind(this));
+		}.bind(this))
+		inp.click();
 	}.bind(this);
 	
 	this.io_close = function(){
-		
+		this.currentFilePath = undefined;
+		this.close()
 	}.bind(this);
 	
-	this.io_open = function(){
-		
+	this.io_save = function(){
+		var data = JSON_stringify(this.data);
+		fs.writeFile(this.currentFilePath,data,{encoding:"utf8"},function(err){
+			if(!err){
+				console.log("Saved "+(new Date()))
+			}else{
+				alert("Failed to save file!")
+				console.log("Failed to save",err);
+			}
+		});
+	}.bind(this);
+	
+	this.io_saveas = function(){
+		var inp = document.createElement("input");
+		document.body.appendChild(inp);
+		inp.type="file"
+		inp.setAttribute("nwsaveas","file.json");
+		inp.style.display = "none";
+		inp.addEventListener("change",function(e){
+			var filepath = e.target.value;
+			e.target.remove();
+			var data = JSON_stringify(this.data);
+			if(filepath){
+				this.currentFilePath = filepath;
+				fs.writeFile(filepath,data,{encoding:"utf8"},function(err){
+					if(!err){
+						//donothing
+					}else{
+						alert("Failed to save file!")
+						console.log("Failed to save",err);
+					}
+				});
+			}else{
+				console.log("no path provded for saveas");
+			}
+		})
+		inp.click();
 	}.bind(this);
 	
 	
@@ -126,8 +195,11 @@ function JSONick(arg_renderElement){
 	
 	
 	this.close = function(){
+		this.renderElement.innerHTML = "";
 		this.fileOpen = false;
+		this.currentPath = [];
 		this.data = {};
+		this.dispatch("close")
 		this.update();
 	}.bind(this);
 	
@@ -144,6 +216,7 @@ function JSONick(arg_renderElement){
 			//console.log(e);
 		}
 		this.data = d;
+		this.renderElement.innerHTML = "";
 		this.dispatch("pathchange");
 		this.update();
 	}.bind(this);
@@ -153,6 +226,7 @@ function JSONick(arg_renderElement){
 		this.currentPath = [];
 		this.data = obj;
 		this.fileOpen = true;
+		this.renderElement.innerHTML = "";
 		this.dispatch("pathchange");
 		this.update();
 	}.bind(this);
@@ -182,10 +256,8 @@ function JSONick(arg_renderElement){
 		// var items_changed = [];
 		// var items_removed = [];
 		
-		var existing_items = host.children;
-		
-		for(var i = 0;i< existing_items.length;i++){
-			existing_items[i]._remove = true;
+		for(var i = 0;i< host.children.length;i++){
+			host.children[i]._remove = true;
 		}
 		
 		
@@ -291,10 +363,10 @@ function JSONick(arg_renderElement){
 			}
 		}
 		//console.log("try to remove stuff:")
-		for(var i = 0;i< existing_items.length;i++){
-			if(existing_items[i]._remove){
+		for(var i = 0;i<host.children.length;i++){
+			if(host.children._remove === true){
 				//items_removed.push(existing_items[i]._path.join("."));
-				existing_items[i].remove();
+				host.children.remove();
 			}
 		}
 		//console.log("added",items_added);
@@ -327,7 +399,7 @@ function JSONick(arg_renderElement){
 					dom.className += " empty";
 					dom.innerHTML = "\"\"";
 				}else{
-					dom.innerHTML = "\""+value+"\"";
+					dom.innerHTML = value;
 				}
 				break;
 			case "[object Boolean]":
@@ -400,6 +472,6 @@ function JSONick(arg_renderElement){
 				}
 			}
 		}
-		return null;
+		return false;
 	}
 }

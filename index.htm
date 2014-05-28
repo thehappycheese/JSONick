@@ -11,11 +11,13 @@
 		
 		<div id="rightcol">
 			<div id="menu">
+				
+				
 				<h1 style="font-family: 'Trebuchet MS', Helvetica, sans-serif;display:inline-block;margin:0;padding:0;font-size:20px;margin-right:1em;">JSONick</h1>
-				<button>Open</button>
-				<button>Close</button>
-				<button>Save</button>
-				<button>Save As</button>
+				<button onclick="jsonEditor.io_open()">Open</button>
+				<button onclick="jsonEditor.io_close()">Close</button>
+				<button onclick="jsonEditor.io_save()">Save</button>
+				<button onclick="jsonEditor.io_saveas()" disabled>Save As</button>
 				<select id="lang">
 					<option value="js" selected>Javascript</option>
 					<option value="txt">Text</option>

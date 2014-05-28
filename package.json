@@ -1,0 +1,15 @@
+{
+	"name": "JSONick",
+	"main": "index.htm",
+	"node-js": false,
+	"node-remote": "<local>",
+	"window": {
+		"title": "JSONick",
+		"toolbar": true,
+		"frame": true,
+		"min_width": 400,
+		"min_height": 570,
+		"width": 800,
+		"height": 600
+	}
+}

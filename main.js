@@ -3,7 +3,7 @@
 "use strict";
 
 
-
+var fs = require("fs");
 
 
 
@@ -19,7 +19,9 @@ jsonEditor.on("pathchange",updateInterface);
 jsonEditor.on("update",function(){
 	
 });
-jsonEditor.openJSONObject(data);
+jsonEditor.on("close",function(){
+	aceEditor.getSession().setValue("");
+});
 
 aceEditor.setTheme("ace/theme/monokai");
 aceEditor.getSession().setMode("ace/mode/javascript");
