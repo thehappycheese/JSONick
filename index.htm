@@ -14,7 +14,7 @@
 			}
 		});
 	</script>
-	<script type="text/javascript" src="js/mathjax/MathJax.js"></script>
+	<script type="text/javascript" src="mathjax/MathJax.js"></script>
 </head>
 
 <body>
@@ -31,6 +31,7 @@
 				<button onclick="jsonEditor.io_close()">Close</button>
 				<button onclick="jsonEditor.io_save()">Save</button>
 				<button onclick="jsonEditor.io_saveas()" disabled>Save As</button>
+				<button onclick="MathJax.Hub.Queue(['Typeset',MathJax.Hub,'leftcol']);">Typeset Math</button>
 				<select id="lang">
 					<option value="js" selected>Javascript</option>
 					<option value="txt">Text</option>

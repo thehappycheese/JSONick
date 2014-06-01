@@ -89,13 +89,15 @@ document.querySelector("#lang").addEventListener("change",function(e){
 document.querySelector("#wrap").addEventListener("change",function(e){
 	switch(e.target.value){
 		case "yes":
-			editor.getSession().setUseWrapMode(true);
+			aceEditor.getSession().setUseWrapMode(true);
 			break;
 		case "no":
 		default:
-			editor.getSession().setUseWrapMode(false);
+			aceEditor.getSession().setUseWrapMode(false);
 	}
 })
+
+
 
 
 
