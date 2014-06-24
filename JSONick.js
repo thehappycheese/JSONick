@@ -345,6 +345,7 @@ function JSONick(arg_renderElement){
 				var td2 = $("<td>")
 					.appendTo(trow)
 					.addClass("col2")
+					//.attr("contenteditable","true")
 				// item controls
 				//var td3 = $("<td>")
 				//	.appendTo(trow)
